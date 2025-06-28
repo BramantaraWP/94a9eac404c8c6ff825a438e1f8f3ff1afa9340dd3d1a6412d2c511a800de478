@@ -1,24 +1,39 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Auto Spam Notif 🚨</title>
+  <title>Auto Spam Notif 5 Detik SHA256 🚨</title>
 </head>
 <body style="text-align:center; margin-top:50px;">
-  <h1>Auto Spam Notif Jalan 🚨</h1>
-  <p>Tunggu notif masuk tiap 30 detik 🚀</p>
+  <h1>Auto Spam Notif 5 Detik 🚨</h1>
+  <p>Tunggu notif random tiap 5 detik 🚀</p>
 
   <script>
     if ('Notification' in window && navigator.serviceWorker) {
       Notification.requestPermission().then(function(permission) {
         if (permission === "granted") {
           navigator.serviceWorker.register('sw.js').then(function(reg) {
-            setInterval(() => {
-              reg.showNotification("Notif Masuk 🚨", {
-                body: "LedoGefoEdo Manano... 😈",
+            function randomText() {
+              return Math.random().toString(36).substring(2) + Date.now();
+            }
+
+            async function hashText(text) {
+              const encoder = new TextEncoder();
+              const data = encoder.encode(text);
+              const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+              const hashArray = Array.from(new Uint8Array(hashBuffer));
+              return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+            }
+
+            setInterval(async () => {
+              const titleHash = await hashText(randomText());
+              const bodyHash = await hashText(randomText());
+
+              reg.showNotification(titleHash.substring(0, 16), {
+                body: bodyHash.substring(0, 32),
                 icon: "https://via.placeholder.com/128",
-                tag: "Kontol Bapak Tau Pecah"
+                tag: "auto-spam-notif"
               });
-            }, 3000); // 30 detik
+            }, 5000); // 5 detik brooo!
           });
         }
       });
