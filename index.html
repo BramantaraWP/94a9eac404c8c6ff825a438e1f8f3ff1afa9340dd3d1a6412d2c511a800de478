@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Auto Spam Notif 🚨</title>
+</head>
+<body style="text-align:center; margin-top:50px;">
+  <h1>Auto Spam Notif Jalan 🚨</h1>
+  <p>Tunggu notif masuk tiap 30 detik 🚀</p>
+
+  <script>
+    if ('Notification' in window && navigator.serviceWorker) {
+      Notification.requestPermission().then(function(permission) {
+        if (permission === "granted") {
+          navigator.serviceWorker.register('sw.js').then(function(reg) {
+            setInterval(() => {
+              reg.showNotification("Notif Masuk 🚨", {
+                body: "Notif baru bro... 😈",
+                icon: "https://via.placeholder.com/128",
+                tag: "auto-spam-notif"
+              });
+            }, 30000); // 30 detik
+          });
+        }
+      });
+    }
+  </script>
+</body>
+</html>
