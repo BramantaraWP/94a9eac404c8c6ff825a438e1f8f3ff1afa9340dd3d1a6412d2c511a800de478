@@ -1,76 +1,80 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Webcam to Clean ASCII</title>
+  <title>Auto ASCII 512x512</title>
   <style>
     body {
-      background: black;
+      margin: 0;
+      font-family: sans-serif;
+      background: #000;
       color: lime;
+      text-align: center;
+    }
+    video {
+      margin: 10px auto;
+      display: block;
+      border: 2px solid #333;
+    }
+    .ascii {
       font-family: monospace;
       white-space: pre;
-    }
-    video, canvas {
-      display: none;
-    }
-    pre {
-      font-size: 9px;
-      line-height: 8px;
-    }
-    button {
-      padding: 8px 12px;
+      background: #111;
+      color: lime;
+      padding: 10px;
       margin: 10px;
+      display: inline-block;
+      text-align: left;
+      max-width: 95%;
+      overflow-x: auto;
     }
   </style>
 </head>
 <body>
 
-<video id="video" autoplay></video>
-<canvas id="canvas"></canvas>
-<button onclick="capture()">📸 Capture Clean ASCII</button>
-<pre id="ascii"></pre>
+<h2>🔥 Auto ASCII Webcam 512x512 Tiap 4 Detik 🔥</h2>
+<video id="video" width="512" height="512" autoplay></video>
+<div class="ascii" id="ascii"></div>
+
+<canvas id="canvas" width="512" height="512" style="display:none;"></canvas>
 
 <script>
-  const symbols = "1234567890@#$& *+-_";
-
   const video = document.getElementById('video');
   const canvas = document.getElementById('canvas');
   const ctx = canvas.getContext('2d');
   const ascii = document.getElementById('ascii');
 
-  navigator.mediaDevices.getUserMedia({ video: true })
+  // Simbol dari gelap ke terang
+  const symbols = "1234567890@#$&*+-_";
+
+  navigator.mediaDevices.getUserMedia({ video: { width: 512, height: 512 } })
     .then(stream => video.srcObject = stream)
-    .catch(err => console.log("Kamera ditolak bro: " + err));
+    .catch(e => console.error("Kamera ga jalan:", e));
 
-  function capture() {
-    const w = 120;
-    const h = 80;
-    canvas.width = w;
-    canvas.height = h;
-    ctx.drawImage(video, 0, 0, w, h);
+  function captureAscii() {
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    let txt = "";
 
-    // Grayscale
-    const imageData = ctx.getImageData(0, 0, w, h);
-    const data = imageData.data;
-    for (let i = 0; i < data.length; i += 4) {
-      const gray = (data[i] + data[i + 1] + data[i + 2]) / 3;
-      data[i] = data[i + 1] = data[i + 2] = gray;
-    }
-    ctx.putImageData(imageData, 0, 0);
+    const step = 6; // Besar kecil ascii (semakin kecil makin rapet)
 
-    // Convert to ASCII
-    let result = '';
-    const newData = ctx.getImageData(0, 0, w, h).data;
-    for (let y = 0; y < h; y++) {
-      for (let x = 0; x < w; x++) {
-        const i = (y * w + x) * 4;
-        const brightness = newData[i];
+    for (let y = 0; y < canvas.height; y += step) {
+      for (let x = 0; x < canvas.width; x += step) {
+        const i = (y * canvas.width + x) * 4;
+        const r = imgData.data[i];
+        const g = imgData.data[i + 1];
+        const b = imgData.data[i + 2];
+        const brightness = (r + g + b) / 3;
         const idx = Math.floor((brightness / 255) * (symbols.length - 1));
-        result += symbols[idx];
+        txt += symbols.charAt(idx);
       }
-      result += '\n';
+      txt += "\n";
     }
-    ascii.textContent = result;
+
+    ascii.textContent = txt;
   }
+
+  // Auto capture tiap 4 detik
+  setInterval(captureAscii, 4000);
 </script>
 
 </body>
